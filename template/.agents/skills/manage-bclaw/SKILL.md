@@ -195,6 +195,7 @@ in a final call. No S3 bucket, no GitHub dependency, no image rebuild.
 | `agent_home/config.yaml` | `/home/harness/.hermes/config.yaml` *(via Mode 3 Merge-config, NOT overlay)* |
 | `agent_home/system-prompt.md` | `/home/harness/.hermes/system-prompt.md` |
 | `agent_home/skills/foo/SKILL.md` | `/home/harness/.hermes/skills/foo/SKILL.md` |
+| `agent_home/skills/.hub/taps.json` | `/home/harness/.hermes/skills/.hub/taps.json` |
 | `agent_home/memories/...` | `/home/harness/.hermes/memories/...` |
 
 Create `agent_home/` at the repo root and mirror the structure you want on the

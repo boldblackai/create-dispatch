@@ -14,6 +14,7 @@ agent_home/
   config.yaml          # non-env-driven config (skills, toolsets, MCP, model)
   system-prompt.md     # custom system prompt / persona
   skills/              # curated skills (SKILL.md)
+  skills/.hub/taps.json  # default boldblackai/skills marketplace tap (#32)
   memories/            # curated memories
   personas/            # persona definitions
 ```

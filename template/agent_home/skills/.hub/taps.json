@@ -1,0 +1,8 @@
+{
+  "taps": [
+    {
+      "repo": "boldblackai/skills",
+      "path": "skills/"
+    }
+  ]
+}

@@ -2,7 +2,9 @@
 
 A Hermes Agent claw — a long-running gateway deployed as a Slack socket-mode
 bot. It is outbound-only: no load balancer, no inbound ports. The Slack app
-manifest lives in `slack-manifest.json`.
+manifest lives in `slack-manifest.json`. The `agent_home/` overlay ships a
+default `boldblackai/skills` marketplace tap so `hermes skills search` /
+`install` can discover the public catalog after setup.
 
 Runs on AWS ECS using the **EC2 launch type** — a single container instance in
 an Auto Scaling Group (`min=max=desired=1`) with a **persistent EBS data

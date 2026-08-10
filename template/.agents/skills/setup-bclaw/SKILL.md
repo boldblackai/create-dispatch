@@ -629,7 +629,9 @@ Setup has already satisfied its entry conditions:
 #### 5a. Overlay agent_home/ (manage-bclaw Mode 1)
 
 Establish the curated baseline — skills, memories, system prompt, `SOUL.md`
-persona — on the claw's `/home/harness/.hermes`. Run `manage-bclaw` in
+persona, and the default `boldblackai/skills` marketplace tap
+(`agent_home/skills/.hub/taps.json`) — on the claw's `/home/harness/.hermes`.
+Run `manage-bclaw` in
 **Mode 1 (Overlay)** now; it owns the full procedure (tar+base64 over ECS
 Exec, chunked transfer, decode/extract/`chown`, merge-with-overwrite
 semantics, dry-run gate). `config.yaml` is excluded from the overlay on
