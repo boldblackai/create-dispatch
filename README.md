@@ -31,7 +31,7 @@ to use any that [hermes-agent already supports](https://hermes-agent.nousresearc
 
 ## What you get
 
-- [hermes-agent](https://hermes-agent.nousresearch.com/docs) running on AWS ECS (EC2 launch type) — a single container instance in an Auto Scaling Group with a persistent EBS data volume — via our [hardened](https://boldblackai.github.io/harness/security/) [harness](https://github.com/boldblackai/harness) Docker image.
+- [hermes-agent](https://hermes-agent.nousresearch.com/docs) running on AWS ECS (EC2 launch type) — a single container instance in an Auto Scaling Group with a persistent EBS data volume — via our [hardened](https://harness.boldblack.ai/docs/security/) [harness](https://github.com/boldblackai/harness) Docker image.
 
 - GitHub & Slack integration
 

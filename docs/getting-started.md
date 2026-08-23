@@ -15,7 +15,7 @@ CloudFormation.
 - **A harness** — the generated repo is a set of skills, opened in
   [Pi](https://github.com/boldblackai/harness), [Hermes](https://github.com/boldblackai/harness),
   or [OpenCode](https://github.com/boldblackai/harness) (see
-  [harness docs](https://boldblackai.github.io/harness/)).
+  [harness docs](https://harness.boldblack.ai/docs/)).
 
 ## 1. Generate the repo
 
