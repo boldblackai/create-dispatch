@@ -32,7 +32,7 @@ Parameters:
 
   HarnessImageTag:
     Type: String
-    Default: hermes-1.9.11
+    Default: hermes-1.10.1
     Description: >
       Tag of the ghcr.io/boldblackai/harness image to run. Bump to upgrade
       the claw — no image rebuild (use the signed upstream image as-is).
