@@ -1,4 +1,5 @@
-# aws_ssm secret source for Hermes. Pushed into the live ~/.hermes/config.yaml
+# Curated config keys for the claw: the aws_ssm secret source plus pinned
+# Slack streaming/display behavior. Pushed into the live ~/.hermes/config.yaml
 # by the manage-dispatch skill's Merge-config mode (run once during setup); the
 # overlay excludes config.yaml on purpose. The aws_ssm plugin
 # (hermes-aws-ssm-secret-source, installed during setup) resolves the
@@ -9,6 +10,16 @@
 # and are skipped, non-fatal). The three inference-provider keys are all listed
 # so whichever one the operator drops into SSM resolves on restart; the others
 # warn-skip harmlessly. Requires Hermes >= 1.9.3 (#64189).
+#
+# The streaming/platforms/display keys pin Slack delivery so the claw does not
+# inherit defaults that can duplicate output (observed on hermes v2026.9.11):
+# - transport "edit" posts one message and edits it in place while streaming.
+#   The native stream transport ("auto") can open a second live-typing message
+#   for the same reply when an error hits mid-stream. Switch back to "auto"
+#   only after the Slack adapter seals the open stream on error.
+# - native_task_cards false: with the native card lane on, a mid-turn card-lane
+#   failure spawns a plain-text fallback message next to the card. Turn this
+#   back on only when the fallback rail can be suppressed on its own.
 secrets:
   sources: [aws_ssm]
   aws_ssm:
@@ -23,3 +34,19 @@ secrets:
       OPENROUTER_API_KEY: /dispatch/OPENROUTER_API_KEY
       ANTHROPIC_API_KEY: /dispatch/ANTHROPIC_API_KEY
       ZAI_API_KEY: /dispatch/ZAI_API_KEY
+
+streaming:
+  enabled: true
+  transport: edit # edit cannot double on mid-stream errors; the native stream can
+
+platforms:
+  slack:
+    extra:
+      rich_blocks: true        # Block Kit rendering with plain-text fallback
+      native_task_cards: false # card lane's text-fallback rail duplicates the card
+      feedback_buttons: false
+
+display:
+  platforms:
+    slack:
+      live_status: full # per-tool status line; needs assistant:write scope (in the manifest)
