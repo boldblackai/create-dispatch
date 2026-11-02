@@ -250,3 +250,12 @@ genuinely justified, add it with a comment naming the concrete reason.
 `template/` and `dist/` are in the `ignores` array (they are bundled/compiled
 output, not hand-authored) — add generated paths there rather than letting them
 fail lint.
+
+## Runtime storage
+
+The generated ECS template has four agent-state mounts plus two narrow EBS
+mounts for uv-managed Python and its cache. `MISE_CACHE_DIR` lives inside the
+existing mise data mount. Keep environment paths, task volumes, bootstrap
+ownership, and the generated README migration procedure consistent.
+`test/runtime-persistence.test.mjs` parses a renamed generated template and
+checks this storage contract and bootstrap ordering; `pnpm test` includes it.

@@ -22,8 +22,9 @@ security group is inbound-less).
 The task uses **host networking** (it shares the container instance's ENI, which
 has a public IP for outbound to Slack/ghcr/SSM — no NAT gateway). Persistent
 state lives on a **standalone gp3 EBS volume** mounted at `/data`, surfaced into
-the container as 4 host bind-mounts that mirror the harness CLI bind-mounts
-(`~/.hermes`, `~/.config`, `~/.local/share/mise`, `~/.local/state/mise`). The
+the container as four agent-state bind-mounts (`~/.hermes`, `~/.config`,
+`~/.local/share/mise`, `~/.local/state/mise`) plus two narrow uv mounts
+(`~/.cache/uv`, `~/.local/share/uv/python`). The
 volume is `DeletionPolicy: Retain` and is reattached by the instance's UserData
 on every boot, so data survives ASG instance replacement. SQLite's WAL mode
 needs a real local block device (it is unsafe on NFS), which is why state is on
@@ -389,7 +390,7 @@ Confirm `ClusterName`, `ServiceName`, `EbsVolumeId`, `AutoScalingGroupName`,
 
 > **First-deploy instance boot takes a few minutes.** The ASG launches the
 > container instance, whose UserData installs the AWS CLI (if missing), finds +
-> attaches the retained EBS volume, formats/mounts it, creates the 4 subdirs,
+> attaches the retained EBS volume, formats/mounts it, creates the 6 subdirs,
 > and only THEN registers with the ECS cluster. The instance won't appear as a
 > container instance in the cluster until that finishes. Phase 4 waits for
 > registration before scaling.
@@ -811,8 +812,8 @@ Report to the user:
 ## Notes
 
 - **No derived image.** This deploys the signed upstream
-  `ghcr.io/boldblackai/harness` image as-is. The upstream image's 4-way mount
-  layout works directly via host bind-mounts on the EBS volume — no custom
+  `ghcr.io/boldblackai/harness` image as-is. The four agent-state mounts
+  and two uv runtime/cache mounts use the retained EBS volume — no custom
   `Dockerfile` or `entrypoint.sh` is needed. Do not build a derived image.
 
 - **Secrets live in SSM, not Secrets Manager.**
@@ -893,8 +894,8 @@ Report to the user:
   replacement), formats it if fresh (`mkfs.ext4 -L clawdata`), mounts it **by
   label** at `/data` (device names drift on Nitro/Graviton — `nvme1n1` vs the
   `/dev/sdf` attach hint — so the mount uses `LABEL=clawdata`, never the device
-  name), creates the 4 subdirs with `chown 1000:1000`, and only THEN writes
-  `ECS_CLUSTER` and restarts the ECS agent. Mounting and ECS registration are
+  name), creates the 6 subdirs with `chown 1000:1000`, and only THEN writes
+  `ECS_CLUSTER`; the ECS agent starts after cloud-final completes. Mounting and ECS registration are
   ordered so the task can never bind-mount an unmounted `/data` and silently
   land on the ephemeral root filesystem. Because the volume is standalone +
   retained + reattached by tag, data survives ASG instance replacement without
@@ -984,3 +985,14 @@ Report to the user:
   valid plain YAML). Ignore those; instead validate with cfn-lint:
   `uvx cfn-lint .agents/skills/setup-dispatch/template.yaml` (run via
   `mise exec -- uvx cfn-lint ...`).
+
+## Runtime storage updates
+
+The task sets `UV_PYTHON_INSTALL_DIR` and `UV_CACHE_DIR` to their narrow EBS
+mounts and `MISE_CACHE_DIR` to the writable mise data mount. Generated toolchain
+data stays outside `.hermes`. New hosts create and own all six directories
+before ECS registers. For an existing host, follow the
+[README storage procedure](../../../README.md#runtime-storage-upgrades)
+before deploying new mounts; updating launch-template UserData does not run it
+on an existing instance. Verify the three paths are writable as uid 1000 and
+that a retained worktree's Python interpreter still runs after replacement.

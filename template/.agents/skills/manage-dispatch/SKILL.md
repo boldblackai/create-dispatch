@@ -1011,3 +1011,16 @@ aws ec2 terminate-instances --instance-ids "$INSTANCE_ID" --dry-run --region "$A
   forgetting `EnableGitHubKey=true` silently turns GitHub auth back off. (The
   inference-provider key is resolved from SSM by the aws_ssm plugin, not a
   stack parameter, so it is unaffected by an upgrade.)
+
+## Runtime storage changes
+
+Runtime mount/environment changes require a CloudFormation stack update;
+overlay and merge-config modes do not change ECS volumes. Follow the
+[README storage procedure](../../../README.md#runtime-storage-upgrades)
+before updating an existing deployment. Prepare and own the host directories,
+preserve any uv-managed interpreters required by existing worktrees, and keep
+all current stack parameters. A launch-template update alone does not prepare
+the current host or migrate files out of the task's writable layer. After the
+new task starts, verify the uv and mise paths as the workload user and run a
+retained worktree's `.venv/bin/python`. Image rollback alone does not undo the
+mount layout; retain the previous template and migration backup until verified.

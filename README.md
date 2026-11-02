@@ -37,6 +37,8 @@ to use any that [hermes-agent already supports](https://hermes-agent.nousresearc
 
 - SQLite-backed persistent state on a retained gp3 EBS volume (local block storage — SQLite WAL is unsafe on NFS).
 
+- Persistent uv-managed Python and package caches, plus a writable mise cache, so retained worktrees can keep using their managed interpreters after host replacement. See [runtime storage upgrades](docs/upgrading.md#runtime-storage).
+
 ## Usage
 
 ```bash

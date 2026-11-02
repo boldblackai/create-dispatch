@@ -33,7 +33,8 @@ You can use web-search-prime to look things up that aren't obvious in the reposi
   skill at `.agents/skills/setup-dispatch/template.yaml`.
 - No derived image is built. The signed upstream
   `ghcr.io/boldblackai/harness` image is deployed as-is — host bind-mounts on
-  the EBS volume support the 4-way mount layout directly, so no custom
+  the EBS volume support four agent-state mounts and two uv runtime/cache
+  mounts directly, so no custom
   `Dockerfile`/`entrypoint.sh` are needed.
 - See `README.md` for prerequisites (tooling, AWS creds, IAM, secrets).
 
@@ -45,13 +46,16 @@ You can use web-search-prime to look things up that aren't obvious in the reposi
   probes Graviton AZ availability via `describe-instance-type-offerings` and
   passes one ARM64-capable AZ to the stack.
 - **Persistent EBS data volume** (gp3, retained) mounted at `/data`, surfaced
-  into the container as 4 host bind-mounts (`.hermes`, `.config`, mise
-  data/state) owned by the `harness` user (uid/gid 1000). The volume is
+  into the container as 6 host bind-mounts (`.hermes`, `.config`, mise
+  data/state, uv cache, and uv-managed Python) owned by the `harness` user (uid/gid 1000). The volume is
   standalone + `DeletionPolicy: Retain`; the instance's UserData finds it by
   baked ID (CFN injects the volume ID into the launch template), attaches it,
   and mounts it by filesystem label on every boot, so data survives ASG instance
   replacement. SQLite's WAL mode needs a real local block device (it is unsafe
-  on NFS), which is the reason state is on EBS.
+  on NFS), which is the reason state is on EBS. uv-managed interpreters and
+  cache retain their container paths across host replacement. `MISE_CACHE_DIR`
+  lives inside the writable mise data mount. See the README runtime storage
+  procedure before applying these mounts to an existing deployment.
 - Secrets are **SSM SecureString** parameters under the claw's `/dispatch/KEY`
   namespace, written by the user in setup Phase 3. Not
   stack-owned, so they survive stack updates/deletes. A Hermes secret-source
