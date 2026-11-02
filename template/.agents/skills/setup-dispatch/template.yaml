@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >
   Hermes Agent claw on ECS (EC2 launch type) — dedicated VPC, a persistent
-  EBS data volume mounted at /data (4 host bind-mounts mirroring the harness
+  EBS data volume mounted at /data (6 host bind-mounts extending the harness
   CLI bind-mounts), SSM-backed secrets, and a single-replica ECS service on an
   Auto Scaling Group (min=max=desired=1) with ECS Exec (SSM Session Manager)
   shell-in. ARM64 by default (Graviton). Signed upstream image, as-is; the bot
@@ -595,8 +595,9 @@ Resources:
             mount "LABEL=$LABEL" "$MOUNT"
             grep -q "LABEL=$LABEL" /etc/fstab || echo "LABEL=$LABEL $MOUNT ext4 defaults,nofail 0 2" >> /etc/fstab
 
-            # --- the 4 persisted subdirs, owned by the harness user (uid/gid 1000) ---
-            mkdir -p "$MOUNT/hermes" "$MOUNT/xdg-config" "$MOUNT/mise-data" "$MOUNT/mise-state"
+            # --- persisted state and uv paths, owned by the harness user (uid/gid 1000) ---
+            mkdir -p "$MOUNT/hermes" "$MOUNT/xdg-config" "$MOUNT/mise-data" "$MOUNT/mise-state" \
+              "$MOUNT/uv-cache" "$MOUNT/uv-python"
             chown -R 1000:1000 "$MOUNT"
 
             # --- register with ECS LAST: with ECS_CLUSTER absent the agent will
@@ -711,6 +712,12 @@ Resources:
             - { Name: HARNESS_CLOUD_MODE, Value: "1" }
             - { Name: HERMES_HOME, Value: "/home/harness/.hermes" }
             - { Name: HF_HOME, Value: "/home/harness/.hermes/.cache/huggingface" }
+            # Keep mise's cache writable inside its persistent data mount.
+            - { Name: MISE_CACHE_DIR, Value: "/home/harness/.local/share/mise/cache" }
+            # Retain uv-managed interpreters at stable paths so persisted
+            # worktree virtualenvs survive task and host replacement.
+            - { Name: UV_CACHE_DIR, Value: "/home/harness/.cache/uv" }
+            - { Name: UV_PYTHON_INSTALL_DIR, Value: "/home/harness/.local/share/uv/python" }
           # Only GH_TOKEN_VAL is injected via CloudFormation secrets[]: the
           # on-boot `gh auth login --with-token` runs in the container Command
           # BEFORE `exec hermes gateway`, i.e. before the aws_ssm secret-source
@@ -729,6 +736,8 @@ Resources:
             - { SourceVolume: hermes-config,     ContainerPath: /home/harness/.config,           ReadOnly: false }
             - { SourceVolume: hermes-mise-data,  ContainerPath: /home/harness/.local/share/mise, ReadOnly: false }
             - { SourceVolume: hermes-mise-state, ContainerPath: /home/harness/.local/state/mise, ReadOnly: false }
+            - { SourceVolume: hermes-uv-cache,   ContainerPath: /home/harness/.cache/uv, ReadOnly: false }
+            - { SourceVolume: hermes-uv-python,  ContainerPath: /home/harness/.local/share/uv/python, ReadOnly: false }
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -736,8 +745,8 @@ Resources:
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: hermes
       Volumes:
-        # The 4 bind-mount paths mirror the harness CLI bind-mounts; the
-        # UserData wires up the /data subdirs that back them.
+        # Four agent-state mounts plus two narrow uv runtime/cache mounts.
+        # UserData prepares their /data subdirs before ECS registers.
         - Name: hermes-data
           Host: { SourcePath: /data/hermes }
         - Name: hermes-config
@@ -746,6 +755,10 @@ Resources:
           Host: { SourcePath: /data/mise-data }
         - Name: hermes-mise-state
           Host: { SourcePath: /data/mise-state }
+        - Name: hermes-uv-cache
+          Host: { SourcePath: /data/uv-cache }
+        - Name: hermes-uv-python
+          Host: { SourcePath: /data/uv-python }
 
   # ── Service: DesiredCount is a !Ref (default 1); first deploy passes 0 ──────
   # No NetworkConfiguration: host-mode tasks share the instance's ENI, so there
@@ -799,7 +812,7 @@ Outputs:
   EbsVolumeId:
     Value: !Ref EbsDataVolume
     Description: >
-      The retained gp3 data volume holding the 4 persisted subdirs (/data/*).
+      The retained gp3 data volume holding the 6 persisted subdirs (/data/*).
       Survives stack delete (DeletionPolicy: Retain) and ASG instance
       replacement; the teardown skill deletes it explicitly after confirmation.
   AutoScalingGroupName:

@@ -40,3 +40,23 @@ for it.
 `agent_home/config.yaml` merges into the live `config.yaml` at the key level:
 fetch live config → merge → flag conflicts → show diff → push. Conflicts
 resolve by choosing the repo value, the live value, or a hand-edited blend.
+
+## Runtime storage
+
+The generated template persists uv-managed Python installations and the uv
+package cache on retained EBS, and routes mise's cache into its existing
+writable data mount. The generated README's **Runtime storage upgrades** section
+contains the migration and verification procedure.
+
+Before applying these mounts to an existing deployment, pause work, preserve
+required interpreters from the running task, and prepare the host directories
+with uid/gid 1000 ownership. Updating launch-template UserData does not execute
+it on the current host. The task update does not copy files out of its previous
+writable layer; mounting an empty directory can hide interpreters needed by
+persisted virtualenvs.
+
+Preserve all current stack parameters when deploying the new template. Verify
+runtime paths, write permissions, and a retained worktree's Python interpreter
+as the workload user. Repeat those checks during an authorized host-replacement
+test. Keep a migration backup until verification completes. An image rollback
+alone does not undo the storage layout or recover the old writable layer.

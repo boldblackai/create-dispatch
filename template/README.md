@@ -314,3 +314,58 @@ at deploy time (Phase 2). Fix any gap in the policy from step 2 and re-run.
 ## Tear down
 
 `.agents/skills/teardown-dispatch/SKILL.md`
+
+## Runtime storage upgrades
+
+The task mounts `/data/uv-python` at `/home/harness/.local/share/uv/python`
+and `/data/uv-cache` at `/home/harness/.cache/uv`. It sets
+`UV_PYTHON_INSTALL_DIR` and `UV_CACHE_DIR` to those container paths, and
+`MISE_CACHE_DIR` to `/home/harness/.local/share/mise/cache` inside the existing
+mise data mount. Managed interpreters retain the paths used by persisted
+worktrees' virtual environments across task and instance replacement.
+System Python, manually installed interpreters, and virtualenvs outside the
+retained volume need their own recovery plan. No whole-home or whole-cache
+mount masks image-provided files. Monitor EBS free space as caches grow.
+
+For a new deployment, UserData prepares all six directories before ECS starts.
+For an existing deployment, use this sequence during a maintenance window:
+
+1. Pause agent work and back up the retained volume. Record the current task
+   definition, template, stack parameters, `uv python dir`, `uv cache dir`, and
+   interpreter targets used by retained worktrees. Copy any required uv-managed
+   Python installations out of the running task's writable layer to a staging
+   directory on retained storage **before stopping the task**. Preserve symlinks
+   and permissions. Also preserve cache contents if virtualenvs use symlinks
+   into the cache; otherwise the cache can start empty.
+2. With approved administrative access to the container host, verify `/data`
+   is the mounted retained volume, then prepare its directories:
+
+   ```bash
+   mountpoint -q /data || exit 1
+   install -d -o 1000 -g 1000 /data/uv-python /data/uv-cache
+   ```
+
+   Restore the staged interpreters into `/data/uv-python`, with installation
+   directories directly underneath it, and any required cache into
+   `/data/uv-cache`. Restore ownership to `1000:1000`. Keep the staging backup
+   until verification completes. Host administration uses its own authorized
+   access; ECS Exec alone exposes only the task's current mounts.
+3. Update the stack with the new template, retaining its current parameter
+   values. The service replaces the task. An updated launch template does not
+   rerun UserData on the existing host; the directory preparation above is
+   required before the new task can bind-mount them. Replacement hosts use
+   UserData to prepare the same directories after mounting EBS.
+4. As the `harness` user, verify `uv python dir` and `uv cache dir` match the
+   configured mounts; verify all three runtime/cache paths are writable.
+   Run a retained worktree's `.venv/bin/python` and a focused project test.
+   If an interpreter cannot be preserved at its original container path,
+   reinstall the required version and recreate the affected virtualenv from
+   its lockfile before resuming work. Check gateway health as well.
+5. During an authorized host-replacement test, repeat the path, ownership,
+   virtualenv, and gateway checks after EBS reattachment. If rollout fails,
+   restore the previous template/task definition and recover the staged
+   runtimes as necessary; an image-tag rollback alone does not restore files
+   lost from a stopped task's writable layer.
+
+This procedure changes storage wiring, not the selected image, compute size,
+or EBS capacity. Use the manage skill for deployment mechanics and verification.

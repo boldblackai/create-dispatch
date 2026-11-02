@@ -43,18 +43,28 @@ infrastructure:
 
 ## The persistent volume
 
-The EBS volume is surfaced into the container as four host bind-mounts that
-mirror the harness CLI bind-mounts:
+The EBS volume is surfaced into the container as four agent-state bind-mounts
+and two narrow uv runtime/cache mounts:
 
 | Host path (on `/data`) | Container path |
 |---|---|
 | `hermes/` | `~/.hermes` |
-| `config/` | `~/.config` |
-| `mise/` | `~/.local/share/mise` |
+| `xdg-config/` | `~/.config` |
+| `mise-data/` | `~/.local/share/mise` |
 | `mise-state/` | `~/.local/state/mise` |
+| `uv-python/` | `~/.local/share/uv/python` |
+| `uv-cache/` | `~/.cache/uv` |
 
 Because state lives on EBS, an instance replacement (ASG recycle, instance
 failure, manual rebuild) does not lose sessions, memories, or skills.
+`UV_PYTHON_INSTALL_DIR` and `UV_CACHE_DIR` point at the two uv mounts so
+managed interpreters remain at the paths referenced by retained worktree
+virtualenvs. `MISE_CACHE_DIR` uses `~/.local/share/mise/cache` inside the
+existing writable mise data mount. These mounts do not cover the whole home,
+`.local`, or `.cache` directory.
+
+Existing deployments require directory preparation and interpreter migration
+before updating their task definition; see [runtime storage upgrades](upgrading.md#runtime-storage).
 
 ## The overlay
 
