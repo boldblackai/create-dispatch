@@ -250,3 +250,12 @@ genuinely justified, add it with a comment naming the concrete reason.
 `template/` and `dist/` are in the `ignores` array (they are bundled/compiled
 output, not hand-authored) — add generated paths there rather than letting them
 fail lint.
+
+## Optional Linear integration
+
+`template/integrations/linear/` ships the opt-in plugin, webhook/queue stack
+renderer, supplemental execution policy, config fragment, and operator guide.
+It stays outside `agent_home/` until enabled and requires the image version
+specified in the guide. `test/linear.test.mjs` exercises a renamed generated
+project and runs its offline Python protocol tests; `pnpm test` includes it.
+Keep these tests compatible with the targeted Hermes APIs when upgrading.

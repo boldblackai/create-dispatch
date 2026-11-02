@@ -23,6 +23,19 @@ created out-of-band in setup Phase 0 (the stack cannot create the role it
 assumes to create itself), so it survives `delete-stack` and is deleted here as
 the final step, after the stack is gone.
 
+## Optional Linear stack dependency
+
+Before deleting the main CloudFormation stack, check whether
+`dispatch-linear` exists. If present, follow the
+[integration removal procedure](../../../integrations/linear/README.md#operations-and-removal):
+disable webhook delivery, stop the consumer, preserve required queue data,
+then delete the Linear stack and wait for completion. Its consumer IAM policy
+references the main task role, and the receiver uses the main KMS key. Remove
+the supplemental execution-role policy only after successful side-stack
+deletion. Treat access or lookup errors as errors, not as proof the stack is
+absent. Continue main-stack teardown only after this dependency is removed.
+
+
 ## Prerequisites
 
 Before starting, ensure the shell has `mise` and AWS credentials loaded

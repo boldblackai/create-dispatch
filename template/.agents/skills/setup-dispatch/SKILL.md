@@ -39,6 +39,17 @@ owned by the stack — they live in SSM Parameter Store as namespaced
 SecureStrings that the user writes in Phase 3. This keeps
 secrets out of template diffs and lets them survive stack deletes.
 
+## Optional Linear integration
+
+After base setup and Slack verification, use the repository's
+[integration guide](../../../integrations/linear/README.md) to enable Linear
+agent sessions. It requires selecting and verifying the compatible Harness
+image with manage Mode 4 before copying the plugin into `agent_home/`. Install
+the supplemental execution policy and separate `dispatch-linear` stack,
+write mapped SSM values, merge config while preserving enabled plugins, then
+verify on a disposable issue. Base setup does not enable Linear automatically.
+
+
 ## Prerequisites
 
 This skill assumes AWS credentials are already configured. See `README.md` →

@@ -18,7 +18,10 @@
         "cloudformation:ExecuteChangeSet",
         "cloudformation:DeleteChangeSet"
       ],
-      "Resource": "arn:aws:cloudformation:*:*:stack/dispatch/*"
+      "Resource": [
+        "arn:aws:cloudformation:*:*:stack/dispatch/*",
+        "arn:aws:cloudformation:*:*:stack/dispatch-linear/*"
+      ]
     },
     {
       "Sid": "CloudFormationGlobalMeta",

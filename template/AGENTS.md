@@ -78,3 +78,11 @@ You can use web-search-prime to look things up that aren't obvious in the reposi
 - `EnableExecuteCommand: true` → shell-in via `aws ecs execute-command` (SSM
   Session Manager) over the host's internet path. Exec sessions run as **root**;
   use `runuser -u harness --` to act as the workload user (uid 1000).
+
+## Optional Linear integration
+
+`integrations/linear/` contains a disabled-by-default Hermes directory plugin,
+a signed Lambda webhook receiver, and an SQS FIFO side stack. Follow its
+README for image compatibility, installation, SSM mapping, and verification.
+The gateway consumes outbound and persists its inbox on the same retained
+EBS volume. Remove the side stack before the main stack during teardown.

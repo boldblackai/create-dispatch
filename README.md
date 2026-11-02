@@ -35,6 +35,8 @@ to use any that [hermes-agent already supports](https://hermes-agent.nousresearc
 
 - GitHub & Slack integration
 
+- Optional [Linear agent sessions](docs/linear.md), with signed webhook ingestion, meaningful progress updates, and status replies that bypass running work.
+
 - SQLite-backed persistent state on a retained gp3 EBS volume (local block storage — SQLite WAL is unsafe on NFS).
 
 ## Usage

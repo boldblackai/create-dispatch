@@ -12,6 +12,14 @@ volume** for the claw's SQLite databases. Deployed and torn down via the agent
 skills in `.agents/skills/`.
 
 
+## Optional Linear agent sessions
+
+Follow [integrations/linear/README.md](integrations/linear/README.md) to add
+mentions, issue delegation, progress updates, and immediate status replies.
+This opt-in integration includes a Hermes plugin and a separate signed
+webhook/SQS stack. It requires the compatible image upgrade described in the
+guide; the default Slack deployment does not enable it.
+
 ## Tooling
 
 `mise` manages all tools (`aws-cli`, `jj`) — see `mise.toml`. Do not install
