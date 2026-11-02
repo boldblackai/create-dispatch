@@ -51,6 +51,19 @@ so it works even when no task is RUNNING. Determine which mode the user
 needs from context, or ask. When in doubt, default to **Overlay** (the
 common case); for `config.yaml` changes, default to **Merge-config**.
 
+## Optional Linear integration
+
+The repository's [integration guide](../../../integrations/linear/README.md)
+provides enablement, verification, secret rotation, and removal procedures.
+Use Mode 4 for the compatible image, Mode 1 for plugin files, and Mode 3 for
+configuration. Merge replaces lists: preserve the full live `plugins.enabled`
+list when adding `linear-agent`. Overlay does not delete files and config
+merge does not delete keys; disabling requires explicit removal from both
+curated and live state. Restart after plugin/config changes. The receiver
+caches its signing secret independently of Hermes and requires recycling
+when that secret rotates.
+
+
 ## Prerequisites
 
 1. **The claw is already set up and RUNNING.** This skill manages a live

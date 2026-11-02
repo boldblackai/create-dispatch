@@ -50,3 +50,8 @@ jobs:
 
       - name: Golden test
         run: pnpm test
+
+      - name: Linear infrastructure
+        run: |
+          python3 template/integrations/linear/render_template.py > /tmp/linear-template.json
+          cfn-lint /tmp/linear-template.json

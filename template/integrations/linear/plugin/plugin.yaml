@@ -1,0 +1,5 @@
+name: linear-agent
+version: 1.0.0
+description: "Linear agent sessions through a signed webhook and outbound SQS polling."
+author: Contributors
+kind: standalone

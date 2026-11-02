@@ -1,0 +1,20 @@
+# Merge keys with existing config; this fragment intentionally omits plugins.enabled.
+# Add linear-agent to the EXISTING enabled list, preserving aws_ssm and other plugins.
+secrets:
+  aws_ssm:
+    region: us-east-1
+    env:
+      LINEAR_AGENT_QUEUE_URL: /dispatch/LINEAR_AGENT_QUEUE_URL
+      LINEAR_ORGANIZATION_ID: /dispatch/LINEAR_ORGANIZATION_ID
+      LINEAR_APP_USER_ID: /dispatch/LINEAR_APP_USER_ID
+      LINEAR_ALLOWED_USERS: /dispatch/LINEAR_ALLOWED_USERS
+      LINEAR_CLIENT_ID: /dispatch/LINEAR_CLIENT_ID
+      LINEAR_CLIENT_SECRET: /dispatch/LINEAR_CLIENT_SECRET
+display:
+  platforms:
+    linear:
+      streaming: false
+      interim_assistant_messages: true
+      tool_progress: 'off'
+      show_reasoning: false
+      long_running_notifications: false
